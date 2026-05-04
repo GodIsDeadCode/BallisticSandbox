@@ -4,6 +4,7 @@ using BallisticSandbox.Infrastructure.DI.Collection;
 using BallisticSandbox.Infrastructure.DI.Provider;
 using BallisticSandbox.Infrastructure.DI.Exceptions;
 using BallisticSandbox.Infrastructure.DI.Injection;
+using UnityEngine;
 
 namespace BallisticSandbox.Infrastructure.DI.Container
 {
@@ -78,15 +79,14 @@ namespace BallisticSandbox.Infrastructure.DI.Container
             }
         }
 
-        public T Resolve<T>(Type contractType, object identifier = null)
+        public object Resolve<TContract>(object identifier = null)
         {
-            if (contractType == null)
-                throw new ArgumentNullException(nameof(contractType), "Contract type cannot be null.");
+            return Resolve(typeof(TContract), identifier);
+        }
 
-            if (typeof(T).IsAssignableFrom(contractType))
-                throw new InvalidOperationException("Implementation type must be assignable to the contract type.");
-
-            return (T)Resolve(contractType, identifier);
+        public TImplementation Resolve<TContract, TImplementation>(object identifier = null) where TImplementation : class
+        {
+            return (TImplementation)Resolve(typeof(TContract), identifier);
         }
 
         public void Inject(object instance, InjectionType injectionType)

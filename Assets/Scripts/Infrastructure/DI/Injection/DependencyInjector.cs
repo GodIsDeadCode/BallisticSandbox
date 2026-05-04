@@ -155,7 +155,7 @@ namespace BallisticSandbox.Infrastructure.DI.Injection
             {
                 MethodInfo method = methods[i];
                 if (!method.IsDefined(typeof(InjectAttribute), false))
-                    throw new InvalidOperationException($"Method {method.Name} in {type.Name} is marked [Inject] but must return void.");
+                    continue;
 
                 ParameterInfo[] parameters = method.GetParameters();
                 object[] identifiers = new object[parameters.Length];

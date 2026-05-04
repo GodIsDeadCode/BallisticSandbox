@@ -30,7 +30,7 @@ namespace BallisticSandbox.Infrastructure.DI.Factory
 
         static InstanceFactory()
         {
-            ResolveMethod = typeof(IDependencyResolver).GetMethod(nameof(IDependencyResolver.Resolve), new[] { typeof(Type), typeof(object) });
+            ResolveMethod = typeof(IDependencyResolver).GetMethod(nameof(IDependencyResolver.Resolve), new[] {typeof(Type), typeof(object)});
             ResolverParameter = Expression.Parameter(typeof(IDependencyResolver), "resolver");
             DictionaryItemProperty = typeof(IReadOnlyDictionary<Type, Func<IDependencyResolver, object>>).GetProperty("Item");
             ContainsKeyMethod = typeof(IReadOnlyDictionary<Type, Func<IDependencyResolver, object>>).GetMethod(nameof(IDictionary<Type, Func<IDependencyResolver, object>>.ContainsKey));
@@ -161,7 +161,7 @@ namespace BallisticSandbox.Infrastructure.DI.Factory
 
         private ConstructorInfo FindConstructor(Type type)
         {
-            ConstructorInfo[] constructors = type.GetConstructors();
+            ConstructorInfo[] constructors = type.GetConstructors(BindingFlags.Instance | BindingFlags.Public);
             if (constructors.Length == 0)
                 throw new InvalidOperationException($"Type {type.FullName} does not have a public constructor.");
 

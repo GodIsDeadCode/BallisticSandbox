@@ -10,7 +10,8 @@ namespace BallisticSandbox.Infrastructure.DI.Container
         bool IsRegistered(Type contractType, object identifier = null);
         void Register(BindData bindData);
         object Resolve(Type contractType, object identifier = null);
-        T Resolve<T>(Type contractType, object identifier = null);
+        object Resolve<TContract>(object identifier = null);
+        TImplementation Resolve<TContract, TImplementation>(object identifier = null) where TImplementation : class;
         IBindingContractState SetupBinding();
     }
 }
