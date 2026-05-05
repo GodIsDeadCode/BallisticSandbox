@@ -46,7 +46,7 @@ namespace BallisticSandbox.Infrastructure.DI.Injection
                 if (injectionType.HasFlag(InjectionType.Methods))
                     InjectIntoMethods(type, instance);
             }
-            catch (DependencyResolutionException ex)
+            catch (DependencyResolutionException)
             {
                 throw;
             }

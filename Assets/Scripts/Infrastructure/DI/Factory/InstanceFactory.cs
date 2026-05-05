@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -20,20 +19,20 @@ namespace BallisticSandbox.Infrastructure.DI.Factory
         private static readonly ConstructorInfo ArgumentExceptionCtor;
 
         private readonly IDependencyResolver _dependencyResolver;
-        private readonly ConcurrentDictionary<Type, Func<IDependencyResolver, IReadOnlyDictionary<int, TypeValuePair>, object>> _factoriesCache;
+        private readonly Dictionary<Type, Func<IDependencyResolver, IReadOnlyDictionary<int, TypeValuePair>, object>> _factoriesCache;
 
         public InstanceFactory(IDependencyResolver dependencyResolver)
         {
             _dependencyResolver = dependencyResolver;
-            _factoriesCache = new ConcurrentDictionary<Type, Func<IDependencyResolver, IReadOnlyDictionary<int, TypeValuePair>, object>>();
+            _factoriesCache = new Dictionary<Type, Func<IDependencyResolver, IReadOnlyDictionary<int, TypeValuePair>, object>>();
         }
 
         static InstanceFactory()
         {
             ResolveMethod = typeof(IDependencyResolver).GetMethod(nameof(IDependencyResolver.Resolve), new[] {typeof(Type), typeof(object)});
             ResolverParameter = Expression.Parameter(typeof(IDependencyResolver), "resolver");
-            DictionaryItemProperty = typeof(IReadOnlyDictionary<Type, Func<IDependencyResolver, object>>).GetProperty("Item");
-            ContainsKeyMethod = typeof(IReadOnlyDictionary<Type, Func<IDependencyResolver, object>>).GetMethod(nameof(IDictionary<Type, Func<IDependencyResolver, object>>.ContainsKey));
+            DictionaryItemProperty = typeof(IReadOnlyDictionary<int, TypeValuePair>).GetProperty("Item");
+            ContainsKeyMethod = typeof(IReadOnlyDictionary<int, TypeValuePair>).GetMethod(nameof(IDictionary<int, TypeValuePair>.ContainsKey));
             NullObjectConstant = Expression.Constant(null, typeof(object));
             ArgumentExceptionCtor = typeof(ArgumentException).GetConstructor(new[] { typeof(string) });
             ArgumentsDictParameter = Expression.Parameter(typeof(IReadOnlyDictionary<int, TypeValuePair>), "arguments");
@@ -82,8 +81,8 @@ namespace BallisticSandbox.Infrastructure.DI.Factory
             ParameterInfo[] parameters = constructorData.Parameters;
             Expression[] paramExpressions = new Expression[parameters.Length];
 
-            Expression nullDictExpression = Expression.Constant(null, typeof(IReadOnlyDictionary<Type, TypeValuePair>));
-            BinaryExpression argumentsNotNull = Expression.Equal(argumentsExpression, nullDictExpression);
+            Expression nullDictExpression = Expression.Constant(null, typeof(IReadOnlyDictionary<int, TypeValuePair>));
+            BinaryExpression argumentsNotNull = Expression.NotEqual(argumentsExpression, nullDictExpression);
 
             for (int i = 0; i < parameters.Length; i++)
             {
@@ -113,7 +112,7 @@ namespace BallisticSandbox.Infrastructure.DI.Factory
         private Expression BuildValueExpression(ParameterExpression argumentExp, Expression indexExp, ParameterInfo parameter, ConstructorData constructorData, int index)
         {
             IndexExpression pairExpression = Expression.Property(argumentExp, DictionaryItemProperty, indexExp);
-            MemberExpression vaueExpression = Expression.Property(pairExpression, nameof(TypeValuePair.Value));
+            MemberExpression vaueExpression = Expression.Field(pairExpression, nameof(TypeValuePair.Value));
             UnaryExpression castExpression = Expression.Convert(vaueExpression, parameter.ParameterType);
 
             bool isNullable = !parameter.ParameterType.IsValueType || Nullable.GetUnderlyingType(parameter.ParameterType) != null;

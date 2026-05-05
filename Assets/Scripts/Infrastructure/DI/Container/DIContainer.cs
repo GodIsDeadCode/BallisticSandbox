@@ -69,7 +69,7 @@ namespace BallisticSandbox.Infrastructure.DI.Container
 
                 throw new BindingNotFoundException($"No binding found for {contractType.Name} with identificator {identifier}.", contractType);
             }
-            catch (BindingNotFoundException ex)
+            catch (BindingNotFoundException)
             {
                 throw;
             }

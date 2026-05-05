@@ -11,15 +11,15 @@ namespace BallisticSandbox.Infrastructure.DI.Provider
 {
     public class InstanceProvider : IInstanceProvider
     {
-        [ThreadStatic] private static readonly Stack<Type> _resolutionStack;
-        [ThreadStatic] private static readonly HashSet<Type> _currentlyResolvingTypes;
+        private readonly Stack<Type> _resolutionStack;
+        private readonly HashSet<Type> _currentlyResolvingTypes;
 
         private readonly IDependencyResolver _dependencyResolver;
         private readonly IBindingCollection _bindingCollection;
         private readonly IInstanceFactory _instanceFactory;
 
-        private readonly Dictionary<Bind.BindID, object> _singletonInstances;
-        private readonly Dictionary<Bind.BindID, object> _scopedInstances;
+        private readonly Dictionary<BindID, object> _singletonInstances;
+        private readonly Dictionary<BindID, object> _scopedInstances;
         private readonly object _singletonLock = new();
         private readonly object _scopedLock = new();
 
@@ -29,12 +29,8 @@ namespace BallisticSandbox.Infrastructure.DI.Provider
             _bindingCollection = bindingCollection;
 
             _instanceFactory = new InstanceFactory(dependencyResolver);
-            _singletonInstances = new Dictionary<Bind.BindID, object>();
-            _scopedInstances = new Dictionary<Bind.BindID, object>();
-        }
-
-        static InstanceProvider()
-        {
+            _singletonInstances = new Dictionary<BindID, object>();
+            _scopedInstances = new Dictionary<BindID, object>();
             _resolutionStack = new Stack<Type>();
             _currentlyResolvingTypes = new HashSet<Type>();
         }
@@ -68,7 +64,7 @@ namespace BallisticSandbox.Infrastructure.DI.Provider
             if (contractType == null)
                 throw new ArgumentNullException(nameof(contractType), "Contract type cannot be null.");
 
-            if (!_bindingCollection.TryGet(contractType, identifier, out Bind.BindData bindData))
+            if (!_bindingCollection.TryGet(contractType, identifier, out BindData bindData))
                 throw new BindingNotFoundException("No binding found for the specified contract type and identifier.", contractType, null, identifier);
 
             if (bindData.Lifetime == Lifetime.Singleton)
@@ -80,7 +76,7 @@ namespace BallisticSandbox.Infrastructure.DI.Provider
             return GetInstanceInternal(bindData);
         }
 
-        private object GetScopedInstance(Bind.BindData bindData)
+        private object GetScopedInstance(BindData bindData)
         {
             BindID bindId = new(bindData.ContractType, bindData.Identifier);
             if (_scopedInstances.TryGetValue(bindId, out object scopedInstance))
@@ -98,7 +94,7 @@ namespace BallisticSandbox.Infrastructure.DI.Provider
             }
         }
 
-        private object GetSingletonInstance(Bind.BindData bindData)
+        private object GetSingletonInstance(BindData bindData)
         {
             BindID bindID = new(bindData.ContractType, bindData.Identifier);
             if (_singletonInstances.TryGetValue(bindID, out object singletonInstance))
@@ -116,7 +112,7 @@ namespace BallisticSandbox.Infrastructure.DI.Provider
             }
         }
 
-        private object GetInstanceInternal(Bind.BindData bindData)
+        private object GetInstanceInternal(BindData bindData)
         {
             Type impType = bindData.ImplementationType;
             if (IsCurrentlyResolving(impType))
@@ -129,17 +125,17 @@ namespace BallisticSandbox.Infrastructure.DI.Provider
                     return bindData.Instance;
 
                 if (bindData.Factory != null)
-                    return bindData.Factory.Invoke(_dependencyResolver) ??
-                           throw new InvalidOperationException($"Factory for type {impType} returned null");
+                    return bindData.Factory.Invoke(_dependencyResolver) ?? throw new InvalidOperationException($"Factory for type {impType} returned null");
 
                 return _instanceFactory.CreateInstance(impType, bindData.Arguments);
             }
-            catch (DependencyResolutionException ex)
+            catch (DependencyResolutionException)
             {
                 throw;
             }
             catch (Exception ex)
             {
+                Debug.LogError(ex.Message);
                 throw new DependencyResolutionException($"Failed to resolve type {impType}: {ex.Message}", impType, _resolutionStack, ex);
             }
             finally
