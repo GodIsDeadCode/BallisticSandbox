@@ -1,16 +1,16 @@
 ﻿using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using BallisticSandbox.Infrastructure.DI.Bind;
 
 namespace BallisticSandbox.Infrastructure.DI.Collection
 {
     public class BindingCollection : IBindingCollection
     {
-        private readonly ConcurrentDictionary<BindID, BindData> _bindings;
+        private readonly Dictionary<BindID, BindData> _bindings;
 
         public BindingCollection()
         {
-            _bindings = new ConcurrentDictionary<BindID, BindData>();
+            _bindings = new Dictionary<BindID, BindData>();
         }
 
         public void Add(BindData bindData)
@@ -65,6 +65,14 @@ namespace BallisticSandbox.Infrastructure.DI.Collection
                 throw new ArgumentNullException(nameof(contracType), "Contract type cannot be null.");
 
             return _bindings.ContainsKey(new BindID(contracType, identifier));
+        }
+
+        public IReadOnlyCollection<BindData> GetAllRegisteredBinds()
+        {
+            if (_bindings.Count == 0)
+                return null;
+
+            return _bindings.Values;
         }
 
         public void Clear()

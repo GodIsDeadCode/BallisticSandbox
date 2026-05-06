@@ -4,7 +4,7 @@ using BallisticSandbox.Infrastructure.DI.Collection;
 using BallisticSandbox.Infrastructure.DI.Provider;
 using BallisticSandbox.Infrastructure.DI.Exceptions;
 using BallisticSandbox.Infrastructure.DI.Injection;
-using UnityEngine;
+using System.Collections.Generic;
 
 namespace BallisticSandbox.Infrastructure.DI.Container
 {
@@ -92,6 +92,11 @@ namespace BallisticSandbox.Infrastructure.DI.Container
         public void Inject(object instance, InjectionType injectionType)
         {
             _dependencyInjector.Inject(instance, injectionType);
+        }
+
+        public IReadOnlyCollection<BindData> GetAllRegisteredBindings()
+        {
+            return _bindingCollection.GetAllRegisteredBinds();
         }
     }
 }
