@@ -160,7 +160,8 @@ namespace BallisticSandbox.Infrastructure.DI.Factory
 
         private ConstructorInfo FindConstructor(Type type)
         {
-            ConstructorInfo[] constructors = type.GetConstructors(BindingFlags.Instance | BindingFlags.Public);
+            ConstructorInfo[] constructors = type.GetConstructors(BindingFlags.Instance | BindingFlags.Public | 
+                                                                  BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
             if (constructors.Length == 0)
                 throw new InvalidOperationException($"Type {type.FullName} does not have a public constructor.");
 
