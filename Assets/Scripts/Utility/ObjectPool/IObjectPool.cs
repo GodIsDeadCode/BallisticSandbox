@@ -7,6 +7,7 @@
         int CountAllObjects { get; }
 
         void Clear();
+        T GetActiveObject(ulong id);
         T GetObject();
         void ReleaseObject(T obj);
     }
